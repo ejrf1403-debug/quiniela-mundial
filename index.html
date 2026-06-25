@@ -40,15 +40,15 @@
             const gL = document.getElementById('goles-l').value;
             const gV = document.getElementById('goles-v').value;
 
-            // IMPORTANTE: Los números deben ser enteros (parseInt)
+            // CORRECCIÓN: usamos 'goles_locales' tal como aparece en image_83c820.jpg
             const pronostico = {
                 nombre_jugador: miNombre,
-                goles_local: parseInt(gL),
+                goles_locales: parseInt(gL), 
                 goles_visitante: parseInt(gV),
-                partido_id: 1 // Asegúrate que el ID 1 existe en tu tabla 'partidos'
+                partido_id: 1 
             };
 
-            const { data, error } = await miSupabase.from('pronosticos').insert([pronostico]);
+            const { data, error } = await miSupabase.from('pronosticos').insert(pronostico);
 
             if (error) {
                 console.error("Error completo:", error);
