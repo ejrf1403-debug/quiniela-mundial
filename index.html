@@ -2,10 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Quiniela</title>
+    <title>Quiniela Mundial 2026</title>
+    <!-- Cargamos la librería de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <h1>Bienvenido a la Quiniela</h1>
-    <p>Estamos trabajando en esto...</p>
+    <h1>Partidos de la Quiniela</h1>
+    <div id="lista-partidos">Cargando partidos...</div>
+
+    <script>
+        // Tu URL de proyecto
+        const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co'; 
+        // Tu clave pública
+        const SUPABASE_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function cargarPartidos() {
+            // Nota: Asegúrate de que tu tabla en Supabase se llame exactamente 'partidos'
+            const { data, error } = await supabase.from('partidos').select('*');
+            
+            const contenedor = document.getElementById('lista-partidos');
+            
+            if (error) {
+                contenedor.innerHTML = 'Error al cargar: ' + error.message;
+                return;
+            }
+            
+            contenedor.innerHTML = '';
+            if (!data || data.length === 0) {
+                contenedor.innerHTML = 'No se encontraron partidos en la base de datos.';
+            } else {
+                data.forEach(partido => {
+                    contenedor.innerHTML += `
+                        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px; border-radius: 5px;">
+                            <strong>${partido.equipo_local} vs ${partido.equipo_visitante}</strong>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        cargarPartidos();
+    </script>
 </body>
 </html>
