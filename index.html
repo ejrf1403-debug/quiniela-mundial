@@ -2,8 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiniela Mundial 2026</title>
+    <!-- Cargamos la librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .partido-card { 
+            background: white; 
+            border: 1px solid #ddd; 
+            margin: 10px 0; 
+            padding: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
     <h1>Partidos de la Quiniela</h1>
@@ -14,14 +27,14 @@
         const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
         
-        // 2. Usamos un nombre diferente para la variable: miSupabase
+        // 2. Inicialización
         const miSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function cargarPartidos() {
-            // 3. Usamos miSupabase aquí
-            const { data, error } = await miSupabase.from('partidos').select('*');
-            
             const contenedor = document.getElementById('lista-partidos');
+            
+            // 3. Consulta a la tabla 'partidos'
+            const { data, error } = await miSupabase.from('partidos').select('*');
             
             if (error) {
                 contenedor.innerHTML = 'Error al cargar: ' + error.message;
@@ -34,8 +47,11 @@
             } else {
                 data.forEach(partido => {
                     contenedor.innerHTML += `
-                        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px; border-radius: 5px;">
+                        <div class="partido-card">
                             <strong>${partido.equipo_local} vs ${partido.equipo_visitante}</strong>
+                            <p style="margin: 5px 0 0 0; color: #555;">
+                                Resultado: ${partido.goles_local} - ${partido.goles_visitante}
+                            </p>
                         </div>
                     `;
                 });
