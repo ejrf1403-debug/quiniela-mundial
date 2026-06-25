@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h1 id="bienvenida">Cargando...</h1>
+    <h1 id="bienvenida">Cargando perfil...</h1>
 
     <div class="card">
         <h2>Mi Pronóstico</h2>
@@ -24,7 +24,7 @@
 
     <div class="card">
         <h2>Mis Pronósticos Guardados</h2>
-        <div id="lista-mis-pronosticos">Cargando tus pronósticos...</div>
+        <div id="lista-mis-pronosticos">Cargando...</div>
     </div>
 
     <div id="seccion-partidos">
@@ -41,19 +41,19 @@
         const miNombre = urlParams.get('nombre') || "Invitado";
         document.getElementById('bienvenida').innerText = "Hola, " + miNombre;
 
-        // NUEVA FUNCIÓN: Leer de Supabase y mostrar
+        // Función para cargar mis pronósticos con nombre de partido
         async function cargarMisPronosticos() {
-            const { data } = await miSupabase
-                .from('pronosticos')
-                .select('*')
-                .eq('nombre_jugador', miNombre); // Filtra solo los de este jugador
+            const { data: pronosticos } = await miSupabase.from('pronosticos').select('*').eq('nombre_jugador', miNombre);
+            const { data: partidos } = await miSupabase.from('partidos').select('*');
 
             const cont = document.getElementById('lista-mis-pronosticos');
             cont.innerHTML = '';
             
-            if (data && data.length > 0) {
-                data.forEach(p => {
-                    cont.innerHTML += `<p><strong>Marcador:</strong> ${p.goles_locales} - ${p.goles_visitante}</p>`;
+            if (pronosticos && pronosticos.length > 0) {
+                pronosticos.forEach(p => {
+                    const partido = partidos.find(item => item.id === p.partido_id);
+                    const nombrePartido = partido ? `${partido.equipo_local} vs ${partido.equipo_visitante}` : "Partido desconocido";
+                    cont.innerHTML += `<div style="margin-bottom: 10px; border-bottom: 1px solid #eee;"><strong>${nombrePartido}</strong>: ${p.goles_locales} - ${p.goles_visitante}</div>`;
                 });
             } else {
                 cont.innerHTML = 'Aún no has guardado pronósticos.';
@@ -76,13 +76,10 @@
             if (error) {
                 alert("Error: " + error.message);
             } else {
-                alert("¡Guardado! Recargando...");
-                cargarMisPronosticos(); // Recarga la lista automáticamente
+                alert("¡Pronóstico guardado!");
+                cargarMisPronosticos();
             }
         }
-
-        cargarPartidos();
-        cargarMisPronosticos(); // Llamamos a esta nueva función al abrir la página
 
         async function cargarPartidos() {
             const { data } = await miSupabase.from('partidos').select('*');
@@ -94,6 +91,9 @@
                 });
             }
         }
+
+        cargarPartidos();
+        cargarMisPronosticos();
     </script>
 </body>
 </html>
