@@ -2,107 +2,72 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiniela Mundial 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --color-oro: #FFD700;
-            --color-azul-mundial: #003366;
-            --color-verde: #4CAF50;
-        }
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: var(--color-azul-mundial); color: white; margin: 0; }
-        .card { background: white; color: #333; margin: 15px 0; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-left: 6px solid var(--color-oro); }
-        h1, h2 { color: var(--color-oro); }
-        input { padding: 10px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 20px; background-color: var(--color-verde); color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        :root { --oro: #FFD700; --azul: #003366; --verde: #4CAF50; --amarillo: #FFC107; --rojo: #F44336; }
+        body { font-family: sans-serif; background: var(--azul); color: white; padding: 20px; }
+        .card { background: white; color: #333; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 6px solid #ccc; display: flex; align-items: center; gap: 15px; }
+        .verde { border-left-color: var(--verde); background: #e8f5e9; }
+        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
+        .rojo { border-left-color: var(--rojo); background: #ffebee; }
+        input { width: 50px; padding: 5px; text-align: center; }
+        h1 { color: var(--oro); text-align: center; }
     </style>
 </head>
 <body>
 
-    <h1 id="bienvenida">Cargando...</h1>
-
-    <div class="card" id="seccion-pronostico">
-        <h2 id="titulo-pronostico">Mi Pronóstico</h2>
-        <input type="number" id="goles-l" placeholder="Goles Local">
-        <input type="number" id="goles-v" placeholder="Goles Visitante">
-        <button id="btn-guardar" onclick="guardarPronostico()">Guardar Pronóstico</button>
-    </div>
-
-    <div class="card">
-        <h2>Tabla de Posiciones</h2>
-        <table id="tabla-ranking">
-            <thead><tr><th>Jugador</th><th>Puntos</th></tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div class="card">
-        <h2>Pronósticos Guardados</h2>
-        <div id="lista-mis-pronosticos">Cargando...</div>
-    </div>
+    <h1 id="titulo-perfil">Cargando...</h1>
+    <div id="lista-partidos-detalle">Cargando todos los partidos...</div>
 
     <script>
         const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
-        const miSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const miNombre = urlParams.get('nombre') || "Invitado";
-        const perfilVisitado = urlParams.get('perfil') || miNombre;
+        const params = new URLSearchParams(window.location.search);
+        const miNombre = params.get('nombre') || "Invitado";
+        const perfilVisitado = params.get('perfil') || miNombre;
+        const esSoloLectura = miNombre !== perfilVisitado;
 
-        document.getElementById('bienvenida').innerText = "Quiniela: " + perfilVisitado;
+        document.getElementById('titulo-perfil').innerText = `Quiniela: ${perfilVisitado}`;
 
-        // Lógica de Solo Lectura
-        if (miNombre !== perfilVisitado) {
-            document.getElementById('btn-guardar').disabled = true;
-            document.getElementById('titulo-pronostico').innerText = `Viendo pronósticos de ${perfilVisitado}`;
-            document.querySelectorAll('input').forEach(el => el.disabled = true);
-        }
+        async function cargarQuiniela() {
+            const { data: partidos } = await supabaseClient.from('partidos').select('*');
+            const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*').eq('nombre_jugador', perfilVisitado);
+            
+            const cont = document.getElementById('lista-partidos-detalle');
+            cont.innerHTML = partidos.map(p => {
+                const pron = pronosticos.find(pr => pr.partido_id === p.id);
+                
+                // Lógica de colores (solo si el partido tiene resultado real)
+                let clase = '';
+                if (pron && p.goles_local !== null) {
+                    if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) clase = 'verde';
+                    else if ((pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || 
+                             (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante)) clase = 'amarillo';
+                    else clase = 'rojo';
+                }
 
-        async function cargarDatos() {
-            const { data: pronosticos } = await miSupabase.from('pronosticos').select('*').eq('nombre_jugador', perfilVisitado);
-            const { data: partidos } = await miSupabase.from('partidos').select('*');
-            const { data: todosPronosticos } = await miSupabase.from('pronosticos').select('*');
-
-            // Render lista
-            const cont = document.getElementById('lista-mis-pronosticos');
-            cont.innerHTML = pronosticos.map(p => {
-                const par = partidos.find(i => i.id === p.partido_id);
-                return `<div><strong>${par ? par.equipo_local+' vs '+par.equipo_visitante : 'Partido'}</strong>: ${p.goles_locales}-${p.goles_visitante}</div>`;
+                return `
+                    <div class="card ${clase}">
+                        <strong style="flex-grow:1">${p.equipo_local} vs ${p.equipo_visitante}</strong>
+                        <span>Real: ${p.goles_local ?? '-'} - ${p.goles_visitante ?? '-'}</span>
+                        <input type="number" value="${pron?.goles_locales ?? ''}" placeholder="L" ${esSoloLectura ? 'disabled' : ''}>
+                        <input type="number" value="${pron?.goles_visitante ?? ''}" placeholder="V" ${esSoloLectura ? 'disabled' : ''}>
+                        ${!esSoloLectura ? `<button onclick="guardar(${p.id})">Guardar</button>` : ''}
+                    </div>
+                `;
             }).join('');
-
-            // Calcular Ranking
-            let ranking = {};
-            todosPronosticos.forEach(p => {
-                const real = partidos.find(i => i.id === p.partido_id);
-                if (!real) return;
-                if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
-                if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) ranking[p.nombre_jugador] += 3;
-                else if ((p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante)) ranking[p.nombre_jugador] += 1;
-            });
-
-            const cuerpoTabla = document.querySelector('#tabla-ranking tbody');
-            cuerpoTabla.innerHTML = Object.entries(ranking).sort((a,b) => b[1]-a[1]).map(([nombre, pts]) => 
-                `<tr><td>${nombre}</td><td>${pts} pts</td></tr>`).join('');
         }
 
-        async function guardarPronostico() {
-            const pronostico = {
-                nombre_jugador: miNombre,
-                goles_locales: parseInt(document.getElementById('goles-l').value),
-                goles_visitante: parseInt(document.getElementById('goles-v').value),
-                partido_id: 1 // Ajusta esto según el partido seleccionado
-            };
-            await miSupabase.from('pronosticos').insert(pronostico);
-            alert("¡Guardado!");
-            location.reload();
+        async function guardar(partidoId) {
+            // Lógica para capturar inputs de esa fila y enviar a Supabase
+            alert("Guardando pronóstico para el partido: " + partidoId);
+            // Aquí llamarías a supabaseClient.from('pronosticos').upsert(...)
         }
 
-        cargarDatos();
+        cargarQuiniela();
     </script>
 </body>
 </html>
