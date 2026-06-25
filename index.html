@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiniela Mundial 2026</title>
-    <!-- Cargamos la librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .partido-card { 
+        .card { 
             background: white; 
             border: 1px solid #ddd; 
             margin: 10px 0; 
@@ -16,11 +15,21 @@
             border-radius: 8px; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h1>Partidos de la Quiniela</h1>
-    <div id="lista-partidos">Cargando partidos...</div>
+    <h1>Quiniela Mundial 2026</h1>
+
+    <div id="seccion-participantes">
+        <h2>Participantes</h2>
+        <div id="lista-participantes">Cargando jugadores...</div>
+    </div>
+
+    <div id="seccion-partidos">
+        <h2>Partidos</h2>
+        <div id="lista-partidos">Cargando partidos...</div>
+    </div>
 
     <script>
         // 1. Configuración
@@ -30,35 +39,51 @@
         // 2. Inicialización
         const miSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function cargarPartidos() {
-            const contenedor = document.getElementById('lista-partidos');
-            
-            // 3. Consulta a la tabla 'partidos'
-            const { data, error } = await miSupabase.from('partidos').select('*');
+        // Función para cargar participantes
+        async function cargarParticipantes() {
+            const contenedor = document.getElementById('lista-participantes');
+            const { data, error } = await miSupabase.from('participantes').select('*');
             
             if (error) {
-                contenedor.innerHTML = 'Error al cargar: ' + error.message;
+                contenedor.innerHTML = 'Error al cargar participantes: ' + error.message;
                 return;
             }
             
             contenedor.innerHTML = '';
-            if (!data || data.length === 0) {
-                contenedor.innerHTML = 'Aún no hay partidos registrados.';
-            } else {
-                data.forEach(partido => {
-                    contenedor.innerHTML += `
-                        <div class="partido-card">
-                            <strong>${partido.equipo_local} vs ${partido.equipo_visitante}</strong>
-                            <p style="margin: 5px 0 0 0; color: #555;">
-                                Resultado: ${partido.goles_local} - ${partido.goles_visitante}
-                            </p>
-                        </div>
-                    `;
-                });
-            }
+            data.forEach(p => {
+                contenedor.innerHTML += `
+                    <div class="card">
+                        <strong>${p.nombre}</strong> ${p.es_admin ? '<em>(Admin)</em>' : ''}
+                    </div>
+                `;
+            });
         }
 
-        // Ejecutar la carga
+        // Función para cargar partidos
+        async function cargarPartidos() {
+            const contenedor = document.getElementById('lista-partidos');
+            const { data, error } = await miSupabase.from('partidos').select('*');
+            
+            if (error) {
+                contenedor.innerHTML = 'Error al cargar partidos: ' + error.message;
+                return;
+            }
+            
+            contenedor.innerHTML = '';
+            data.forEach(partido => {
+                contenedor.innerHTML += `
+                    <div class="card">
+                        <strong>${partido.equipo_local} vs ${partido.equipo_visitante}</strong>
+                        <p style="margin: 5px 0 0 0; color: #555;">
+                            Resultado: ${partido.goles_local} - ${partido.goles_visitante}
+                        </p>
+                    </div>
+                `;
+            });
+        }
+
+        // Ejecutar ambas cargas
+        cargarParticipantes();
         cargarPartidos();
     </script>
 </body>
