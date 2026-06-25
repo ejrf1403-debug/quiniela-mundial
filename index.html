@@ -38,9 +38,8 @@
             
             const cont = document.getElementById('lista-partidos-detalle');
             cont.innerHTML = partidos.map(p => {
-                const pron = pronosticos.find(pr => pr.partido_id === p.id);
+                const pron = pronosticos ? pronosticos.find(pr => pr.partido_id === p.id) : null;
                 
-                // Lógica de colores (solo si el partido tiene resultado real)
                 let clase = '';
                 if (pron && p.goles_local !== null) {
                     if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) clase = 'verde';
@@ -50,11 +49,11 @@
                 }
 
                 return `
-                    <div class="card ${clase}">
+                    <div class="card ${clase}" id="card-${p.id}">
                         <strong style="flex-grow:1">${p.equipo_local} vs ${p.equipo_visitante}</strong>
                         <span>Real: ${p.goles_local ?? '-'} - ${p.goles_visitante ?? '-'}</span>
-                        <input type="number" value="${pron?.goles_locales ?? ''}" placeholder="L" ${esSoloLectura ? 'disabled' : ''}>
-                        <input type="number" value="${pron?.goles_visitante ?? ''}" placeholder="V" ${esSoloLectura ? 'disabled' : ''}>
+                        <input type="number" class="input-l" value="${pron?.goles_locales ?? ''}" placeholder="L" ${esSoloLectura ? 'disabled' : ''}>
+                        <input type="number" class="input-v" value="${pron?.goles_visitante ?? ''}" placeholder="V" ${esSoloLectura ? 'disabled' : ''}>
                         ${!esSoloLectura ? `<button onclick="guardar(${p.id})">Guardar</button>` : ''}
                     </div>
                 `;
@@ -62,9 +61,32 @@
         }
 
         async function guardar(partidoId) {
-            // Lógica para capturar inputs de esa fila y enviar a Supabase
-            alert("Guardando pronóstico para el partido: " + partidoId);
-            // Aquí llamarías a supabaseClient.from('pronosticos').upsert(...)
+            const card = document.getElementById(`card-${partidoId}`);
+            const gL = parseInt(card.querySelector('.input-l').value);
+            const gV = parseInt(card.querySelector('.input-v').value);
+
+            if (isNaN(gL) || isNaN(gV)) {
+                alert("Por favor, ingresa ambos marcadores.");
+                return;
+            }
+
+            // Upsert intenta insertar; si hay conflicto en nombre_jugador y partido_id, actualiza
+            const { error } = await supabaseClient
+                .from('pronosticos')
+                .upsert({
+                    nombre_jugador: perfilVisitado,
+                    partido_id: partidoId,
+                    goles_locales: gL,
+                    goles_visitante: gV
+                }, { onConflict: 'nombre_jugador,partido_id' });
+
+            if (error) {
+                console.error("Error al guardar:", error);
+                alert("Error: " + error.message);
+            } else {
+                alert("¡Guardado exitoso!");
+                cargarQuiniela();
+            }
         }
 
         cargarQuiniela();
