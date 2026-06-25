@@ -7,31 +7,41 @@
     <style>
         :root { --oro: #FFD700; --azul: #003366; --verde: #4CAF50; --amarillo: #FFC107; --rojo: #F44336; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--azul); color: white; padding: 20px; }
-        h1, h2 { color: var(--oro); text-align: center; }
-        .card { background: white; color: #333; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 6px solid #ccc; display: flex; align-items: center; gap: 15px; }
-        .verde { border-left-color: var(--verde); background: #e8f5e9; }
-        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
-        .rojo { border-left-color: var(--rojo); background: #ffebee; }
-        input { width: 50px; padding: 5px; text-align: center; }
+        h1 { color: var(--oro); text-align: center; }
+        
+        /* Layout de dos columnas */
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .col-tabla { flex: 1; min-width: 300px; }
+        .col-partidos { flex: 2; min-width: 300px; }
+
+        /* Tarjetas con colores más intensos */
+        .card { background: white; color: #333; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 10px solid #ccc; display: flex; align-items: center; gap: 10px; }
+        .verde { border-left-color: var(--verde); background: #c8e6c9; }
+        .amarillo { border-left-color: var(--amarillo); background: #fff9c4; }
+        .rojo { border-left-color: var(--rojo); background: #ffcdd2; }
+        
+        input { width: 45px; padding: 8px; text-align: center; border: 1px solid #ccc; }
         table { width: 100%; border-collapse: collapse; background: white; color: #333; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        tr:hover { background-color: #f9f9f9; }
-        a { color: var(--azul); text-decoration: none; font-weight: bold; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .mi-perfil { background-color: #e3f2fd !important; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1 id="titulo-perfil">Cargando...</h1>
-    
-    <div style="background: white; color: #333; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2>Tabla de Posiciones</h2>
-        <table id="tabla-ranking">
-            <thead><tr><th>Pos</th><th>Jugador</th><th>Puntos</th></tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
 
-    <div id="lista-partidos-detalle">Cargando partidos...</div>
+    <div class="container">
+        <div class="col-tabla">
+            <h2>Posiciones</h2>
+            <table id="tabla-ranking">
+                <thead><tr><th>Pos</th><th>Jugador</th><th>Pts</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="col-partidos" id="lista-partidos-detalle">
+            Cargando partidos...
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
@@ -39,11 +49,12 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const params = new URLSearchParams(window.location.search);
+        // Lógica para detectar si viene de "tele" o normal
         const miNombre = params.get('nombre') || "Invitado";
         const perfilVisitado = params.get('perfil') || miNombre;
-        const esSoloLectura = miNombre !== perfilVisitado;
+        const esSoloLectura = (miNombre !== perfilVisitado) || params.get('modo') === 'tele';
 
-        document.getElementById('titulo-perfil').innerText = `Quiniela de: ${perfilVisitado}`;
+        document.getElementById('titulo-perfil').innerText = `Quiniela: ${perfilVisitado}`;
 
         async function inicializar() {
             await cargarTablaPosiciones();
@@ -59,25 +70,18 @@
                 const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
                 if (!real) return;
                 if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
-
                 if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) ranking[p.nombre_jugador] += 3;
                 else if ((p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || 
                          (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante)) ranking[p.nombre_jugador] += 1;
             });
 
             const cuerpo = document.querySelector('#tabla-ranking tbody');
-            const ordenado = Object.entries(ranking).sort((a,b) => b[1] - a[1]);
-
-            cuerpo.innerHTML = ordenado.map(([nombre, pts], i) => {
-                const filaEstilo = nombre === miNombre ? 'background: #e3f2fd;' : '';
-                const medalla = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-                return `
-                    <tr style="${filaEstilo}">
-                        <td>${i + 1} ${medalla}</td>
-                        <td><a href="index.html?nombre=${miNombre}&perfil=${nombre}">${nombre}</a></td>
-                        <td>${pts} pts</td>
-                    </tr>`;
-            }).join('');
+            cuerpo.innerHTML = Object.entries(ranking).sort((a,b) => b[1] - a[1]).map(([nombre, pts], i) => `
+                <tr class="${nombre === miNombre ? 'mi-perfil' : ''}">
+                    <td>${i + 1} ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ''}</td>
+                    <td><a href="index.html?nombre=${miNombre}&perfil=${nombre}">${nombre}</a></td>
+                    <td>${pts}</td>
+                </tr>`).join('');
         }
 
         async function cargarQuiniela() {
@@ -94,14 +98,13 @@
                              (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante)) clase = 'amarillo';
                     else clase = 'rojo';
                 }
-
                 return `
                     <div class="card ${clase}" id="card-${p.id}">
-                        <strong style="flex-grow:1">${p.equipo_local} vs ${p.equipo_visitante}</strong>
-                        <span>Real: ${p.goles_local ?? '-'} - ${p.goles_visitante ?? '-'}</span>
-                        <input type="number" class="input-l" value="${pron?.goles_locales ?? ''}" placeholder="L" ${esSoloLectura ? 'disabled' : ''}>
-                        <input type="number" class="input-v" value="${pron?.goles_visitante ?? ''}" placeholder="V" ${esSoloLectura ? 'disabled' : ''}>
-                        ${!esSoloLectura ? `<button onclick="guardar(${p.id})">Guardar</button>` : ''}
+                        <strong style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</strong>
+                        <span>${p.goles_local ?? '-'} - ${p.goles_visitante ?? '-'}</span>
+                        <input type="number" class="input-l" value="${pron?.goles_locales ?? ''}" ${esSoloLectura ? 'disabled' : ''}>
+                        <input type="number" class="input-v" value="${pron?.goles_visitante ?? ''}" ${esSoloLectura ? 'disabled' : ''}>
+                        ${!esSoloLectura ? `<button onclick="guardar(${p.id})">OK</button>` : ''}
                     </div>`;
             }).join('');
         }
@@ -110,13 +113,10 @@
             const card = document.getElementById(`card-${id}`);
             const gL = parseInt(card.querySelector('.input-l').value);
             const gV = parseInt(card.querySelector('.input-v').value);
-            
             const { error } = await supabaseClient.from('pronosticos').upsert({
                 nombre_jugador: perfilVisitado, partido_id: id, goles_locales: gL, goles_visitante: gV
             }, { onConflict: 'nombre_jugador,partido_id' });
-
-            if (error) alert("Error: " + error.message);
-            else { alert("¡Guardado!"); inicializar(); }
+            if (error) alert("Error"); else inicializar();
         }
 
         inicializar();
