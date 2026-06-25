@@ -9,54 +9,64 @@
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
         .card { background: white; border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h2 { border-bottom: 2px solid #333; padding-bottom: 5px; }
+        input { padding: 8px; margin-right: 5px; }
     </style>
 </head>
 <body>
-    <h1 id="bienvenida">Cargando perfil...</h1>
+    <h1 id="bienvenida">Cargando...</h1>
 
-    <!-- Formulario para Registrar Pronóstico -->
     <div class="card">
         <h2>Mi Pronóstico</h2>
         <input type="number" id="goles-l" placeholder="Goles Local">
         <input type="number" id="goles-v" placeholder="Goles Visitante">
-        <input type="hidden" id="partido-id-input" value="1"> <!-- Ajustar según el partido -->
         <button onclick="guardarPronostico()">Guardar Pronóstico</button>
     </div>
 
     <div id="seccion-partidos">
-        <h2>Partidos y Resultados</h2>
+        <h2>Partidos</h2>
         <div id="lista-partidos">Cargando...</div>
     </div>
 
     <script>
-        const miSupabase = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
+        const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
+        const miSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 1. Obtener nombre de la URL: ?nombre=Emmanuel
         const urlParams = new URLSearchParams(window.location.search);
         const miNombre = urlParams.get('nombre') || "Invitado";
         document.getElementById('bienvenida').innerText = "Hola, " + miNombre;
 
-        // 2. Guardar Pronóstico
         async function guardarPronostico() {
             const gL = document.getElementById('goles-l').value;
             const gV = document.getElementById('goles-v').value;
-            
-            const { error } = await miSupabase.from('pronosticos').insert([
-                { nombre_jugador: miNombre, goles_local: gL, goles_visitante: gV, partido_id: 1 }
-            ]);
 
-            if (error) alert("Error: " + error.message);
-            else alert("¡Pronóstico guardado!");
+            // IMPORTANTE: Los números deben ser enteros (parseInt)
+            const pronostico = {
+                nombre_jugador: miNombre,
+                goles_local: parseInt(gL),
+                goles_visitante: parseInt(gV),
+                partido_id: 1 // Asegúrate que el ID 1 existe en tu tabla 'partidos'
+            };
+
+            const { data, error } = await miSupabase.from('pronosticos').insert([pronostico]);
+
+            if (error) {
+                console.error("Error completo:", error);
+                alert("Error al guardar: " + error.message);
+            } else {
+                alert("¡Pronóstico guardado correctamente!");
+            }
         }
 
-        // 3. Cargar partidos (lógica básica)
         async function cargarPartidos() {
             const { data } = await miSupabase.from('partidos').select('*');
             const cont = document.getElementById('lista-partidos');
             cont.innerHTML = '';
-            data.forEach(p => {
-                cont.innerHTML += `<div class="card"><strong>${p.equipo_local} vs ${p.equipo_visitante}</strong></div>`;
-            });
+            if(data) {
+                data.forEach(p => {
+                    cont.innerHTML += `<div class="card"><strong>${p.equipo_local} vs ${p.equipo_visitante}</strong></div>`;
+                });
+            }
         }
 
         cargarPartidos();
