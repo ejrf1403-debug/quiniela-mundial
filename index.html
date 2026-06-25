@@ -7,83 +7,58 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .card { 
-            background: white; 
-            border: 1px solid #ddd; 
-            margin: 10px 0; 
-            padding: 15px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .card { background: white; border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h2 { border-bottom: 2px solid #333; padding-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h1>Quiniela Mundial 2026</h1>
+    <h1 id="bienvenida">Cargando perfil...</h1>
 
-    <div id="seccion-participantes">
-        <h2>Participantes</h2>
-        <div id="lista-participantes">Cargando jugadores...</div>
+    <!-- Formulario para Registrar Pronóstico -->
+    <div class="card">
+        <h2>Mi Pronóstico</h2>
+        <input type="number" id="goles-l" placeholder="Goles Local">
+        <input type="number" id="goles-v" placeholder="Goles Visitante">
+        <input type="hidden" id="partido-id-input" value="1"> <!-- Ajustar según el partido -->
+        <button onclick="guardarPronostico()">Guardar Pronóstico</button>
     </div>
 
     <div id="seccion-partidos">
-        <h2>Partidos</h2>
-        <div id="lista-partidos">Cargando partidos...</div>
+        <h2>Partidos y Resultados</h2>
+        <div id="lista-partidos">Cargando...</div>
     </div>
 
     <script>
-        // 1. Configuración
-        const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
-        
-        // 2. Inicialización
-        const miSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const miSupabase = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
 
-        // Función para cargar participantes
-        async function cargarParticipantes() {
-            const contenedor = document.getElementById('lista-participantes');
-            const { data, error } = await miSupabase.from('participantes').select('*');
+        // 1. Obtener nombre de la URL: ?nombre=Emmanuel
+        const urlParams = new URLSearchParams(window.location.search);
+        const miNombre = urlParams.get('nombre') || "Invitado";
+        document.getElementById('bienvenida').innerText = "Hola, " + miNombre;
+
+        // 2. Guardar Pronóstico
+        async function guardarPronostico() {
+            const gL = document.getElementById('goles-l').value;
+            const gV = document.getElementById('goles-v').value;
             
-            if (error) {
-                contenedor.innerHTML = 'Error al cargar participantes: ' + error.message;
-                return;
-            }
-            
-            contenedor.innerHTML = '';
-            data.forEach(p => {
-                contenedor.innerHTML += `
-                    <div class="card">
-                        <strong>${p.nombre}</strong> ${p.es_admin ? '<em>(Admin)</em>' : ''}
-                    </div>
-                `;
-            });
+            const { error } = await miSupabase.from('pronosticos').insert([
+                { nombre_jugador: miNombre, goles_local: gL, goles_visitante: gV, partido_id: 1 }
+            ]);
+
+            if (error) alert("Error: " + error.message);
+            else alert("¡Pronóstico guardado!");
         }
 
-        // Función para cargar partidos
+        // 3. Cargar partidos (lógica básica)
         async function cargarPartidos() {
-            const contenedor = document.getElementById('lista-partidos');
-            const { data, error } = await miSupabase.from('partidos').select('*');
-            
-            if (error) {
-                contenedor.innerHTML = 'Error al cargar partidos: ' + error.message;
-                return;
-            }
-            
-            contenedor.innerHTML = '';
-            data.forEach(partido => {
-                contenedor.innerHTML += `
-                    <div class="card">
-                        <strong>${partido.equipo_local} vs ${partido.equipo_visitante}</strong>
-                        <p style="margin: 5px 0 0 0; color: #555;">
-                            Resultado: ${partido.goles_local} - ${partido.goles_visitante}
-                        </p>
-                    </div>
-                `;
+            const { data } = await miSupabase.from('partidos').select('*');
+            const cont = document.getElementById('lista-partidos');
+            cont.innerHTML = '';
+            data.forEach(p => {
+                cont.innerHTML += `<div class="card"><strong>${p.equipo_local} vs ${p.equipo_visitante}</strong></div>`;
             });
         }
 
-        // Ejecutar ambas cargas
-        cargarParticipantes();
         cargarPartidos();
     </script>
 </body>
