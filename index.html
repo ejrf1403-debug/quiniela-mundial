@@ -22,6 +22,11 @@
         <button onclick="guardarPronostico()">Guardar Pronóstico</button>
     </div>
 
+    <div class="card">
+        <h2>Mis Pronósticos Guardados</h2>
+        <div id="lista-mis-pronosticos">Cargando tus pronósticos...</div>
+    </div>
+
     <div id="seccion-partidos">
         <h2>Partidos</h2>
         <div id="lista-partidos">Cargando...</div>
@@ -36,11 +41,29 @@
         const miNombre = urlParams.get('nombre') || "Invitado";
         document.getElementById('bienvenida').innerText = "Hola, " + miNombre;
 
+        // NUEVA FUNCIÓN: Leer de Supabase y mostrar
+        async function cargarMisPronosticos() {
+            const { data } = await miSupabase
+                .from('pronosticos')
+                .select('*')
+                .eq('nombre_jugador', miNombre); // Filtra solo los de este jugador
+
+            const cont = document.getElementById('lista-mis-pronosticos');
+            cont.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.forEach(p => {
+                    cont.innerHTML += `<p><strong>Marcador:</strong> ${p.goles_locales} - ${p.goles_visitante}</p>`;
+                });
+            } else {
+                cont.innerHTML = 'Aún no has guardado pronósticos.';
+            }
+        }
+
         async function guardarPronostico() {
             const gL = document.getElementById('goles-l').value;
             const gV = document.getElementById('goles-v').value;
 
-            // CORRECCIÓN: usamos 'goles_locales' tal como aparece en image_83c820.jpg
             const pronostico = {
                 nombre_jugador: miNombre,
                 goles_locales: parseInt(gL), 
@@ -48,15 +71,18 @@
                 partido_id: 1 
             };
 
-            const { data, error } = await miSupabase.from('pronosticos').insert(pronostico);
+            const { error } = await miSupabase.from('pronosticos').insert(pronostico);
 
             if (error) {
-                console.error("Error completo:", error);
-                alert("Error al guardar: " + error.message);
+                alert("Error: " + error.message);
             } else {
-                alert("¡Pronóstico guardado correctamente!");
+                alert("¡Guardado! Recargando...");
+                cargarMisPronosticos(); // Recarga la lista automáticamente
             }
         }
+
+        cargarPartidos();
+        cargarMisPronosticos(); // Llamamos a esta nueva función al abrir la página
 
         async function cargarPartidos() {
             const { data } = await miSupabase.from('partidos').select('*');
@@ -68,8 +94,6 @@
                 });
             }
         }
-
-        cargarPartidos();
     </script>
 </body>
 </html>
