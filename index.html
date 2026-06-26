@@ -90,11 +90,13 @@
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 
-                // CORRECCIÓN: Se añade "Z" para que JS interprete la fecha UTC de Supabase correctamente
                 const fechaPartido = new Date(p.fecha_partido + "Z");
                 const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
                 
-                const estaBloqueado = (minutosFaltantes < 10) && !esAdmin;
+                // LÓGICA CORREGIDA: Bloqueado si el partido ya tiene resultado (goles_local != null) 
+                // O si faltan menos de 10 min para empezar.
+                const partidoYaJugado = p.goles_local !== null;
+                const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
                 const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele') && !estaBloqueado;
 
                 let clase = '';
