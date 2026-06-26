@@ -71,8 +71,9 @@
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 
-                // CORRECCIÓN: El bloqueo YA NO depende de la fecha, solo de si ya hay goles cargados en Supabase.
-                // Si el Admin entra, estaBloqueado siempre será FALSE.
+                // --- DESBLOQUEO TOTAL ---
+                // Los usuarios pueden editar cualquier partido que NO tenga resultado oficial.
+                // Los admins siempre pueden editar todo.
                 const tieneResultado = (p.goles_local !== null);
                 const estaBloqueado = esAdmin ? false : tieneResultado;
                 
@@ -87,7 +88,7 @@
 
                 return `
                     <div class="card ${clase}">
-                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante} ${estaBloqueado ? '🔒' : ''}</div>
+                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</div>
                         <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
                         <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
                         ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
