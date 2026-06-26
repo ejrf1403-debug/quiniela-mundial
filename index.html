@@ -59,12 +59,11 @@
             font-weight: 700;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             flex-wrap: wrap;
-            position: relative;
         }
         .debug-info {
             font-size: 0.7rem;
             color: #888;
-            margin-left: 5px;
+            margin-left: 8px;
         }
         .verde {
             border-left-color: var(--verde);
@@ -176,7 +175,6 @@
             const miNombre = params.get('nombre') || "Invitado";
             const perfilVisitado = params.get('perfil') || miNombre;
 
-            // Administradores (comparación sin distinguir mayúsculas)
             const adminList = ['emmanuel', 'fabrizio'];
             const esAdmin = adminList.includes(miNombre.trim().toLowerCase());
             console.log('Usuario:', miNombre, '¿Admin?', esAdmin);
@@ -186,26 +184,23 @@
             const tablaBody = document.querySelector('#tabla-ranking tbody');
             const partidosContainer = document.getElementById('lista-partidos-detalle');
 
-            // Función para parsear fecha de forma robusta (siempre UTC)
+            // ========== FUNCIÓN ROBUSTA PARA PARSEAR FECHA ==========
             function parsearFechaUTC(fechaStr) {
-                // Reemplazar espacio por T
-                let str = fechaStr.replace(' ', 'T');
-                // Si no tiene zona horaria, agregar 'Z' (UTC)
-                if (!str.includes('+') && !str.includes('Z') && !str.includes('-')) {
-                    str += 'Z';
-                }
-                const fecha = new Date(str);
-                if (isNaN(fecha.getTime())) {
-                    // Intento alternativo: extraer componentes manualmente
-                    const partes = fechaStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
-                    if (partes) {
-                        const [_, anio, mes, dia, hora, min, seg] = partes.map(Number);
-                        // Crear fecha UTC (mes-1 porque en JS enero=0)
-                        return new Date(Date.UTC(anio, mes-1, dia, hora, min, seg));
-                    }
+                // Extraer números con regex: YYYY-MM-DD HH:MM:SS
+                const regex = /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/;
+                const match = fechaStr.match(regex);
+                if (!match) {
+                    console.warn('Formato no reconocido:', fechaStr);
                     return null;
                 }
-                return fecha;
+                const anio = parseInt(match[1], 10);
+                const mes = parseInt(match[2], 10) - 1; // meses 0-11
+                const dia = parseInt(match[3], 10);
+                const hora = parseInt(match[4], 10);
+                const min = parseInt(match[5], 10);
+                const seg = parseInt(match[6], 10);
+                // Crear fecha en UTC
+                return new Date(Date.UTC(anio, mes, dia, hora, min, seg));
             }
 
             async function cargarTodo() {
@@ -252,13 +247,13 @@
                     }).join('');
 
                     // Partidos
-                    const ahora = new Date(); // fecha local, pero getTime() devuelve UTC
+                    const ahora = new Date();
                     let html = '';
 
                     partidos.forEach(p => {
                         const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
 
-                        // Parsear fecha en UTC
+                        // Parsear fecha
                         let fechaPartido = parsearFechaUTC(p.fecha_partido);
                         let minutosFaltantes = Infinity;
                         let fechaValida = false;
@@ -266,6 +261,7 @@
                         if (fechaPartido) {
                             minutosFaltantes = (fechaPartido.getTime() - ahora.getTime()) / 60000;
                             fechaValida = true;
+                            console.log(`Partido ${p.id} (${p.equipo_local} vs ${p.equipo_visitante}) -> minutos: ${minutosFaltantes}`);
                         } else {
                             // Si no se puede parsear, asumimos que el partido ya pasó (bloquear)
                             minutosFaltantes = -999;
@@ -273,19 +269,14 @@
                         }
 
                         // Determinar si el partido ya se jugó
-                        // 1. Si ambos goles son distintos de NULL (resultado guardado)
                         const golesAsignados = (p.goles_local !== null && p.goles_visitante !== null);
-                        // 2. Si la fecha ya pasó (minutosFaltantes < -5, margen de 5 min)
                         const tiempoPasado = fechaValida && minutosFaltantes < -5;
                         const partidoYaJugado = golesAsignados || tiempoPasado;
 
                         // Bloqueo para usuarios NO administradores
                         const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
-
-                        // Editable solo si es el perfil propio o admin, no modo tele, y no bloqueado
                         const esEditable = (miNombre === perfilVisitado || esAdmin) && !modoTele && !estaBloqueado;
 
-                        // Colores de acierto (solo si el partido ya tiene resultado)
                         let clase = '';
                         if (pron && golesAsignados) {
                             const exacto = (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante);
@@ -301,9 +292,7 @@
 
                         const gL = pron?.goles_locales ?? '';
                         const gV = pron?.goles_visitante ?? '';
-
-                        // Depuración: mostrar minutos restantes (solo mientras solucionamos)
-                        const debugText = fechaValida ? `${Math.round(minutosFaltantes)} min` : 'fecha inválida';
+                        const debugText = fechaValida ? `${Math.round(minutosFaltantes)} min` : '⚠️ fecha inválida';
 
                         html += `
                             <div class="card ${clase}">
