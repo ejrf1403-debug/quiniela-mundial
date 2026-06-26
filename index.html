@@ -184,23 +184,32 @@
             const tablaBody = document.querySelector('#tabla-ranking tbody');
             const partidosContainer = document.getElementById('lista-partidos-detalle');
 
-            // ========== FUNCIÓN ROBUSTA PARA PARSEAR FECHA ==========
-            function parsearFechaUTC(fechaStr) {
-                // Extraer números con regex: YYYY-MM-DD HH:MM:SS
+            // ========== PARSEADOR ROBUSTO DE FECHA ==========
+            function parsearFecha(fechaStr) {
+                // Intento 1: new Date() directo (funciona con timestamptz)
+                let d = new Date(fechaStr);
+                if (!isNaN(d.getTime())) return d;
+
+                // Intento 2: reemplazar espacio por T y agregar Z (para formato sin zona)
+                d = new Date(fechaStr.replace(' ', 'T') + 'Z');
+                if (!isNaN(d.getTime())) return d;
+
+                // Intento 3: regex manual (fallback)
                 const regex = /(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/;
-                const match = fechaStr.match(regex);
-                if (!match) {
-                    console.warn('Formato no reconocido:', fechaStr);
-                    return null;
+                const m = fechaStr.match(regex);
+                if (m) {
+                    const anio = parseInt(m[1], 10);
+                    const mes = parseInt(m[2], 10) - 1;
+                    const dia = parseInt(m[3], 10);
+                    const hora = parseInt(m[4], 10);
+                    const min = parseInt(m[5], 10);
+                    const seg = parseInt(m[6], 10);
+                    d = new Date(Date.UTC(anio, mes, dia, hora, min, seg));
+                    if (!isNaN(d.getTime())) return d;
                 }
-                const anio = parseInt(match[1], 10);
-                const mes = parseInt(match[2], 10) - 1; // meses 0-11
-                const dia = parseInt(match[3], 10);
-                const hora = parseInt(match[4], 10);
-                const min = parseInt(match[5], 10);
-                const seg = parseInt(match[6], 10);
-                // Crear fecha en UTC
-                return new Date(Date.UTC(anio, mes, dia, hora, min, seg));
+
+                console.warn('No se pudo parsear la fecha:', fechaStr);
+                return null;
             }
 
             async function cargarTodo() {
@@ -247,23 +256,22 @@
                     }).join('');
 
                     // Partidos
-                    const ahora = new Date();
+                    const ahora = Date.now(); // milisegundos UTC
                     let html = '';
 
                     partidos.forEach(p => {
                         const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
 
                         // Parsear fecha
-                        let fechaPartido = parsearFechaUTC(p.fecha_partido);
+                        const fechaPartido = parsearFecha(p.fecha_partido);
                         let minutosFaltantes = Infinity;
                         let fechaValida = false;
 
                         if (fechaPartido) {
-                            minutosFaltantes = (fechaPartido.getTime() - ahora.getTime()) / 60000;
+                            minutosFaltantes = (fechaPartido.getTime() - ahora) / 60000;
                             fechaValida = true;
                             console.log(`Partido ${p.id} (${p.equipo_local} vs ${p.equipo_visitante}) -> minutos: ${minutosFaltantes}`);
                         } else {
-                            // Si no se puede parsear, asumimos que el partido ya pasó (bloquear)
                             minutosFaltantes = -999;
                             console.warn('Fecha inválida para partido', p.id, p.fecha_partido);
                         }
