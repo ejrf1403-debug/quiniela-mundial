@@ -90,11 +90,10 @@
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 
-                // Cálculo de tiempo para bloqueo
-                const fechaPartido = new Date(p.fecha_partido);
+                // CORRECCIÓN: Se añade "Z" para que JS interprete la fecha UTC de Supabase correctamente
+                const fechaPartido = new Date(p.fecha_partido + "Z");
                 const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
                 
-                // Lógica: Se bloquea si faltan menos de 10 min, excepto si eres Admin
                 const estaBloqueado = (minutosFaltantes < 10) && !esAdmin;
                 const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele') && !estaBloqueado;
 
