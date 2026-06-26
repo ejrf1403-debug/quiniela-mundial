@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiniela Mundial 2026</title>
-    <!-- Fuente moderna y legible -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -55,9 +54,7 @@
         const miNombre = params.get('nombre') || "Invitado";
         const perfilVisitado = params.get('perfil') || miNombre;
         
-        // Administradores: Emmanuel y Fabrizio
         const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
-        // Es editable si es tu perfil o si eres admin (y no estás en modo tele)
         const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele');
 
         async function cargarTodo() {
@@ -70,8 +67,16 @@
                 if (!real) return;
                 if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
                 
-                if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) ranking[p.nombre_jugador] += 3;
-                else if ((p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante)) ranking[p.nombre_jugador] += 1;
+                // Puntos: 3 por resultado exacto, 1 por acertar ganador o empate
+                if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
+                    ranking[p.nombre_jugador] += 3;
+                } else if (
+                    (p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || 
+                    (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante) ||
+                    (p.goles_locales === p.goles_visitante && real.goles_local === real.goles_visitante)
+                ) {
+                    ranking[p.nombre_jugador] += 1;
+                }
             });
 
             const cuerpo = document.querySelector('#tabla-ranking tbody');
@@ -87,8 +92,18 @@
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 let clase = '';
                 if (pron && p.goles_local !== null) {
-                    clase = (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) ? 'verde' : 
-                            ((pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante)) ? 'amarillo' : 'rojo';
+                    // Colores: Verde=Exacto, Amarillo=Acierto ganador o empate, Rojo=Falló
+                    if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) {
+                        clase = 'verde';
+                    } else if (
+                        (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || 
+                        (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) ||
+                        (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)
+                    ) {
+                        clase = 'amarillo';
+                    } else {
+                        clase = 'rojo';
+                    }
                 }
                 return `
                     <div class="card ${clase}">
