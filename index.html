@@ -1,53 +1,138 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quiniela Mundial 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
-        :root { --oro: #FFD700; --azul: #003366; --verde: #2E7D32; --amarillo: #F9A825; --rojo: #C62828; }
-        * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--azul); color: #333; margin: 0; padding: 15px; min-height: 100vh; }
-        
-        h1 { color: var(--oro); text-align: center; font-weight: 800; font-size: 1.8rem; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        
-        .container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: auto; }
-        @media (min-width: 768px) { .container { flex-direction: row; } }
-
-        .col-tabla { flex: 1; min-width: 200px; }
-        .col-partidos { flex: 2; }
-
-        .card { background: white; padding: 12px 10px; margin: 8px 0; border-radius: 10px; border-left: 12px solid #ccc; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card .equipos { flex: 2 0 120px; }
-        .card input { width: 50px; padding: 6px; text-align: center; border: 2px solid #ddd; border-radius: 6px; font-weight: 700; font-size: 1rem; }
-        .card input:disabled { background: #f0f0f0; color: #888; }
-        .card button { padding: 6px 12px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; }
-        .card button:active { transform: scale(0.95); }
-
-        .verde { border-left-color: var(--verde); background: #e8f5e9; }
-        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
-        .rojo { border-left-color: var(--rojo); background: #ffebee; }
-        
-        .fecha-partido { font-size: 0.7rem; color: #666; font-weight: 400; margin-left: auto; white-space: nowrap; }
-
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f4f4f4; font-weight: 800; }
-        .mi-perfil { background-color: #e3f2fd !important; }
-        a { color: var(--azul); text-decoration: none; font-weight: 700; }
-        a:hover { text-decoration: underline; }
-
-        .mensaje-error { background: #ffcdd2; color: #c62828; padding: 10px; border-radius: 6px; margin: 10px 0; display: none; }
-        .mensaje-exito { background: #c8e6c9; color: #2E7D32; padding: 10px; border-radius: 6px; margin: 10px 0; display: none; }
-        .cargando { text-align: center; color: white; font-size: 1.2rem; }
-
-        @media (max-width: 600px) {
-            .card { flex-direction: column; align-items: stretch; }
-            .card .equipos { flex: 1; }
-            .card input { width: 100%; }
-            .card button { width: 100%; }
+        :root {
+            --oro: #FFD700;
+            --azul: #003366;
+            --verde: #2E7D32;
+            --amarillo: #F9A825;
+            --rojo: #C62828;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--azul);
+            color: #333;
+            margin: 0;
+            padding: 15px;
+        }
+        h1 {
+            color: var(--oro);
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+        .col-tabla {
+            flex: 1;
+        }
+        .col-partidos {
+            flex: 2;
+        }
+        .card {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border-left: 12px solid #ccc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+        .verde {
+            border-left-color: var(--verde);
+            background: #e8f5e9;
+        }
+        .amarillo {
+            border-left-color: var(--amarillo);
+            background: #fffde7;
+        }
+        .rojo {
+            border-left-color: var(--rojo);
+            background: #ffebee;
+        }
+        input {
+            width: 50px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+        input:disabled {
+            background: #f0f0f0;
+            color: #666;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+            background: var(--azul);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background: #f4f4f4;
+            font-weight: 800;
+        }
+        .mi-perfil {
+            background-color: #e3f2fd !important;
+        }
+        a {
+            color: var(--azul);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .error-msg {
+            background: #ffcdd2;
+            color: #b71c1c;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-align: center;
         }
     </style>
 </head>
@@ -55,212 +140,191 @@
 
     <h1>🏆 Quiniela Mundial 2026</h1>
 
-    <div id="mensaje-error" class="mensaje-error"></div>
-    <div id="mensaje-exito" class="mensaje-exito"></div>
-
-    <div class="container" id="app">
-        <div class="col-tabla">
-            <table id="tabla-ranking">
-                <thead><tr><th>#</th><th>Jugador</th><th>Pts</th></tr></thead>
-                <tbody><tr><td colspan="3" class="cargando">Cargando...</td></tr></tbody>
-            </table>
+    <div id="app">
+        <div class="container">
+            <div class="col-tabla">
+                <table id="tabla-ranking">
+                    <thead><tr><th>#</th><th>Jugador</th><th>Pts</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="col-partidos" id="lista-partidos-detalle"></div>
         </div>
-        <div class="col-partidos" id="lista-partidos-detalle"></div>
     </div>
 
     <script>
-        // --- Configuración ---
-        const SUPABASE_URL = 'https://rzgwfxxlmurjbwwpmqnb.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Esperamos a que el DOM esté listo y el SDK de Supabase se haya cargado
+        document.addEventListener('DOMContentLoaded', function() {
 
-        // --- Obtener parámetros URL ---
-        const params = new URLSearchParams(window.location.search);
-        const miNombre = params.get('nombre') || "Invitado";
-        const perfilVisitado = params.get('perfil') || miNombre;
-        const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
-        const modoTele = params.get('modo') === 'tele';
-
-        // --- Elementos DOM para mensajes ---
-        const errorDiv = document.getElementById('mensaje-error');
-        const exitoDiv = document.getElementById('mensaje-exito');
-
-        function mostrarMensaje(tipo, texto) {
-            if (tipo === 'error') {
-                errorDiv.textContent = texto;
-                errorDiv.style.display = 'block';
-                exitoDiv.style.display = 'none';
-                setTimeout(() => { errorDiv.style.display = 'none'; }, 5000);
-            } else if (tipo === 'exito') {
-                exitoDiv.textContent = texto;
-                exitoDiv.style.display = 'block';
-                errorDiv.style.display = 'none';
-                setTimeout(() => { exitoDiv.style.display = 'none'; }, 3000);
+            // Verificar que el SDK de Supabase esté disponible
+            if (typeof window.supabase === 'undefined') {
+                document.getElementById('app').innerHTML =
+                    '<div class="error-msg">⚠️ No se pudo cargar el SDK de Supabase. Verifica tu conexión o recarga la página.</div>';
+                console.error('Supabase SDK no cargado.');
+                return;
             }
-        }
 
-        // --- Funciones principales ---
-        async function cargarTodo() {
-            try {
-                // Cargar pronósticos y partidos en paralelo
-                const [pronosticosRes, partidosRes] = await Promise.all([
-                    supabase.from('pronosticos').select('*'),
-                    supabase.from('partidos').select('*')
-                ]);
+            // Crear el cliente de Supabase (usando window.supabase para evitar redeclaración)
+            const supabaseClient = window.supabase.createClient(
+                'https://rzgwfxxlmurjbwwpmqnb.supabase.co',
+                'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD'
+            );
 
-                if (pronosticosRes.error) throw new Error(pronosticosRes.error.message);
-                if (partidosRes.error) throw new Error(partidosRes.error.message);
+            const params = new URLSearchParams(window.location.search);
+            const miNombre = params.get('nombre') || "Invitado";
+            const perfilVisitado = params.get('perfil') || miNombre;
+            const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
+            const modoTele = params.get('modo') === 'tele'; // si es 'tele' no se puede editar
 
-                const pronosticos = pronosticosRes.data;
-                const partidos = partidosRes.data;
+            // Referencias a elementos
+            const tablaBody = document.querySelector('#tabla-ranking tbody');
+            const partidosContainer = document.getElementById('lista-partidos-detalle');
 
-                // --- Calcular ranking ---
-                const ranking = {};
-                pronosticos.forEach(p => {
-                    const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
-                    if (!real) return;
-                    if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
-                    
-                    if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
-                        ranking[p.nombre_jugador] += 3;
-                    } else if (
-                        (p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || 
-                        (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante) ||
-                        (p.goles_locales === p.goles_visitante && real.goles_local === real.goles_visitante)
-                    ) {
-                        ranking[p.nombre_jugador] += 1;
-                    }
-                });
+            // Función principal para cargar datos
+            async function cargarTodo() {
+                try {
+                    // Obtener pronósticos y partidos
+                    const { data: pronosticos, error: errPron } = await supabaseClient
+                        .from('pronosticos')
+                        .select('*');
+                    if (errPron) throw errPron;
 
-                // Ordenar y renderizar tabla
-                const rankingOrdenado = Object.entries(ranking).sort((a, b) => b[1] - a[1]);
-                const tbody = document.querySelector('#tabla-ranking tbody');
-                tbody.innerHTML = rankingOrdenado.map(([nombre, pts], i) => `
-                    <tr class="${nombre === perfilVisitado ? 'mi-perfil' : ''}">
-                        <td>${i+1} ${i===0?'🥇':i===1?'🥈':i===2?'🥉':''}</td>
-                        <td><a href="?nombre=${encodeURIComponent(miNombre)}&perfil=${encodeURIComponent(nombre)}">${nombre}</a></td>
-                        <td>${pts}</td>
-                    </tr>
-                `).join('');
+                    const { data: partidos, error: errPart } = await supabaseClient
+                        .from('partidos')
+                        .select('*');
+                    if (errPart) throw errPart;
 
-                // Si no hay datos, mostrar mensaje
-                if (rankingOrdenado.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No hay pronósticos aún</td></tr>';
-                }
+                    // --- Calcular ranking ---
+                    let ranking = {};
+                    pronosticos.forEach(p => {
+                        const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
+                        if (!real) return;
+                        if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
 
-                // --- Renderizar partidos con pronósticos del perfil visitado ---
-                const cont = document.getElementById('lista-partidos-detalle');
-                const ahora = new Date();
-
-                if (partidos.length === 0) {
-                    cont.innerHTML = '<p style="color:white;text-align:center;">No hay partidos cargados.</p>';
-                    return;
-                }
-
-                cont.innerHTML = partidos.map(p => {
-                    const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
-                    
-                    // Fecha del partido
-                    const fechaPartido = new Date(p.fecha_partido + (p.fecha_partido.includes('Z') ? '' : 'Z')); // asumimos UTC
-                    const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
-                    
-                    // Determinar si el partido está bloqueado para edición
-                    const partidoYaJugado = (p.goles_local !== null);
-                    const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
-                    
-                    // Editable solo si es el perfil del usuario o admin, y no está bloqueado, y no modo tele
-                    const esEditable = (miNombre === perfilVisitado || esAdmin) && !modoTele && !estaBloqueado;
-
-                    // Clase de acierto (color)
-                    let clase = '';
-                    if (pron && p.goles_local !== null) {
-                        if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) {
-                            clase = 'verde';
+                        if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
+                            ranking[p.nombre_jugador] += 3;
                         } else if (
-                            (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || 
-                            (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) ||
-                            (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)
+                            (p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) ||
+                            (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante) ||
+                            (p.goles_locales === p.goles_visitante && real.goles_local === real.goles_visitante)
                         ) {
-                            clase = 'amarillo';
-                        } else {
-                            clase = 'rojo';
+                            ranking[p.nombre_jugador] += 1;
                         }
+                    });
+
+                    // Renderizar tabla de ranking
+                    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]);
+                    tablaBody.innerHTML = sorted.map(([nombre, pts], i) => {
+                        const medalla = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                        const clase = nombre === perfilVisitado ? 'mi-perfil' : '';
+                        return `
+                            <tr class="${clase}">
+                                <td>${i+1}${medalla}</td>
+                                <td><a href="?nombre=${encodeURIComponent(miNombre)}&perfil=${encodeURIComponent(nombre)}">${nombre}</a></td>
+                                <td>${pts}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // --- Renderizar partidos con pronósticos ---
+                    const ahora = new Date();
+                    let html = '';
+
+                    partidos.forEach(p => {
+                        const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
+
+                        // Fecha del partido (asumimos que viene en UTC, agregamos "Z")
+                        const fechaPartido = new Date(p.fecha_partido + "Z");
+                        const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
+
+                        // Lógica de bloqueo:
+                        // - Si ya se jugó (goles_local != null) o faltan menos de 10 min, se bloquea
+                        // - EXCEPTO si es administrador (esAdmin = true) -> puede editar siempre
+                        const partidoYaJugado = (p.goles_local !== null);
+                        const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
+
+                        // Editable si el usuario es el dueño del perfil o admin, y no está en modo tele, y no está bloqueado
+                        const esEditable = (miNombre === perfilVisitado || esAdmin) && !modoTele && !estaBloqueado;
+
+                        // Determinar clase de color (verde/amarillo/rojo) si el partido ya tiene resultado
+                        let clase = '';
+                        if (pron && p.goles_local !== null) {
+                            const aciertoExacto = (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante);
+                            const aciertoResultado = (
+                                (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) ||
+                                (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) ||
+                                (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)
+                            );
+                            if (aciertoExacto) clase = 'verde';
+                            else if (aciertoResultado) clase = 'amarillo';
+                            else clase = 'rojo';
+                        }
+
+                        // Valores del pronóstico
+                        const gL = pron?.goles_locales ?? '';
+                        const gV = pron?.goles_visitante ?? '';
+
+                        html += `
+                            <div class="card ${clase}">
+                                <div style="flex:1; min-width:120px;">
+                                    ${p.equipo_local} vs ${p.equipo_visitante}
+                                    ${estaBloqueado ? ' 🔒' : ''}
+                                    ${partidoYaJugado ? ` (${p.goles_local}-${p.goles_visitante})` : ''}
+                                </div>
+                                <input type="number" class="l-${p.id}" value="${gL}" ${!esEditable ? 'disabled' : ''}>
+                                <input type="number" class="v-${p.id}" value="${gV}" ${!esEditable ? 'disabled' : ''}>
+                                ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    partidosContainer.innerHTML = html;
+
+                    // Hacer accesible la función guardar desde el ámbito global (para los onclick)
+                    window.guardar = guardar;
+
+                } catch (error) {
+                    console.error('Error al cargar datos:', error);
+                    partidosContainer.innerHTML = `<div class="error-msg">❌ Error al cargar los datos: ${error.message}</div>`;
+                }
+            }
+
+            // Función para guardar pronóstico
+            async function guardar(id) {
+                try {
+                    const inputL = document.querySelector(`.l-${id}`);
+                    const inputV = document.querySelector(`.v-${id}`);
+                    if (!inputL || !inputV) return;
+
+                    const gL = parseInt(inputL.value, 10);
+                    const gV = parseInt(inputV.value, 10);
+                    if (isNaN(gL) || isNaN(gV)) {
+                        alert('Ingresa números válidos.');
+                        return;
                     }
 
-                    // Formatear fecha para mostrar
-                    const fechaStr = fechaPartido.toLocaleString('es-ES', { 
-                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                    });
+                    const { error } = await supabaseClient
+                        .from('pronosticos')
+                        .upsert({
+                            nombre_jugador: perfilVisitado,
+                            partido_id: id,
+                            goles_locales: gL,
+                            goles_visitante: gV
+                        }, { onConflict: 'nombre_jugador,partido_id' });
 
-                    return `
-                        <div class="card ${clase}" data-partido-id="${p.id}">
-                            <span class="equipos">${p.equipo_local} vs ${p.equipo_visitante}</span>
-                            <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" 
-                                   ${!esEditable ? 'disabled' : ''} min="0" step="1" placeholder="?">
-                            <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" 
-                                   ${!esEditable ? 'disabled' : ''} min="0" step="1" placeholder="?">
-                            ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
-                            <span class="fecha-partido">${fechaStr} ${estaBloqueado ? '🔒' : ''}</span>
-                        </div>
-                    `;
-                }).join('');
+                    if (error) throw error;
 
-            } catch (error) {
-                console.error('Error al cargar datos:', error);
-                mostrarMensaje('error', 'Error al cargar los datos. Intenta de nuevo.');
-                // Mostrar mensaje en las tablas
-                document.querySelector('#tabla-ranking tbody').innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
-                document.getElementById('lista-partidos-detalle').innerHTML = '<p style="color:white;">Error al cargar partidos</p>';
-            }
-        }
-
-        // --- Función guardar (mejorada) ---
-        async function guardar(id) {
-            const inputLocal = document.querySelector(`.l-${id}`);
-            const inputVisit = document.querySelector(`.v-${id}`);
-            
-            if (!inputLocal || !inputVisit) {
-                mostrarMensaje('error', 'Error: no se encontraron los campos.');
-                return;
+                    // Recargar la vista
+                    await cargarTodo();
+                } catch (error) {
+                    console.error('Error al guardar:', error);
+                    alert('Error al guardar: ' + error.message);
+                }
             }
 
-            const gL = parseInt(inputLocal.value);
-            const gV = parseInt(inputVisit.value);
-
-            // Validaciones
-            if (isNaN(gL) || isNaN(gV) || gL < 0 || gV < 0) {
-                mostrarMensaje('error', 'Por favor ingresa números enteros válidos (0 o más).');
-                return;
-            }
-
-            try {
-                const { error } = await supabase
-                    .from('pronosticos')
-                    .upsert({ 
-                        nombre_jugador: perfilVisitado, 
-                        partido_id: id, 
-                        goles_locales: gL, 
-                        goles_visitante: gV 
-                    }, { 
-                        onConflict: 'nombre_jugador,partido_id' 
-                    });
-
-                if (error) throw new Error(error.message);
-
-                mostrarMensaje('exito', '¡Pronóstico guardado correctamente!');
-                // Recargar todo para actualizar ranking y colores
-                await cargarTodo();
-            } catch (error) {
-                console.error('Error al guardar:', error);
-                mostrarMensaje('error', 'Error al guardar el pronóstico: ' + error.message);
-            }
-        }
-
-        // --- Iniciar ---
-        cargarTodo();
-
-        // Exponer función guardar globalmente (para onclick en HTML)
-        window.guardar = guardar;
+            // Iniciar la carga
+            cargarTodo();
+        });
     </script>
 </body>
 </html>
