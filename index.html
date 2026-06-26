@@ -70,8 +70,7 @@
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 
-                // --- DESBLOQUEO TOTAL ---
-                // Se eliminó la variable "estaBloqueado". Ahora siempre es editable.
+                // ACCESO TOTAL: Eliminamos toda lógica de bloqueo.
                 const esEditable = (miNombre === perfilVisitado) && (params.get('modo') !== 'tele');
 
                 let clase = '';
