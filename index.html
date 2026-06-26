@@ -1,135 +1,128 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiniela Mundial 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --oro: #FFD700; --azul: #003366; --verde: #2E7D32; --amarillo: #F9A825; --rojo: #C62828; }
-        body { font-family: 'Inter', sans-serif; background: var(--azul); color: #333; margin: 0; padding: 15px; }
-        
-        h1 { color: var(--oro); text-align: center; font-weight: 800; font-size: 1.8rem; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        
-        .container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: auto; }
-        @media (min-width: 768px) { .container { flex-direction: row; } }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiniela Mundial 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --oro: #FFD700; --azul: #003366; --verde: #2E7D32; --amarillo: #F9A825; --rojo: #C62828; }
+        body { font-family: 'Inter', sans-serif; background: var(--azul); color: #333; margin: 0; padding: 15px; }
+        
+        h1 { color: var(--oro); text-align: center; font-weight: 800; font-size: 1.8rem; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: auto; }
+        @media (min-width: 768px) { .container { flex-direction: row; } }
 
-        .col-tabla { flex: 1; }
-        .col-partidos { flex: 2; }
+        .col-tabla { flex: 1; }
+        .col-partidos { flex: 2; }
 
-        .card { background: white; padding: 12px; margin: 8px 0; border-radius: 10px; border-left: 12px solid #ccc; display: flex; align-items: center; gap: 10px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .verde { border-left-color: var(--verde); background: #e8f5e9; }
-        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
-        .rojo { border-left-color: var(--rojo); background: #ffebee; }
-        
-        input { width: 50px; padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 6px; font-weight: 700; }
-        button { padding: 8px 15px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; }
+        .card { background: white; padding: 12px; margin: 8px 0; border-radius: 10px; border-left: 12px solid #ccc; display: flex; align-items: center; gap: 10px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .verde { border-left-color: var(--verde); background: #e8f5e9; }
+        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
+        .rojo { border-left-color: var(--rojo); background: #ffebee; }
+        
+        input { width: 50px; padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 6px; font-weight: 700; }
+        button { padding: 8px 15px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; }
 
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f4f4f4; font-weight: 800; }
-        .mi-perfil { background-color: #e3f2fd !important; }
-        a { color: var(--azul); text-decoration: none; }
-    </style>
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f4f4f4; font-weight: 800; }
+        .mi-perfil { background-color: #e3f2fd !important; }
+        a { color: var(--azul); text-decoration: none; }
+    </style>
 </head>
 <body>
 
-    <h1>🏆 Quiniela Mundial 2026</h1>
+    <h1>🏆 Quiniela Mundial 2026</h1>
 
-    <div class="container">
-        <div class="col-tabla">
-            <table id="tabla-ranking">
-                <thead><tr><th>#</th><th>Jugador</th><th>Pts</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="col-partidos" id="lista-partidos-detalle"></div>
-    </div>
+    <div class="container">
+        <div class="col-tabla">
+            <table id="tabla-ranking">
+                <thead><tr><th>#</th><th>Jugador</th><th>Pts</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="col-partidos" id="lista-partidos-detalle"></div>
+    </div>
 
-    <script>
-        const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
-        const params = new URLSearchParams(window.location.search);
-        
-        const miNombre = params.get('nombre') || "Invitado";
-        const perfilVisitado = params.get('perfil') || miNombre;
-        const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
+    <script>
+        const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
+        const params = new URLSearchParams(window.location.search);
+        
+        const miNombre = params.get('nombre') || "Invitado";
+        const perfilVisitado = params.get('perfil') || miNombre;
+        
+        const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
+        const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele');
 
-        async function cargarTodo() {
-            const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
-            const { data: partidos } = await supabaseClient.from('partidos').select('*');
-            
-            let ranking = {};
-            pronosticos.forEach(p => {
-                const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
-                if (!real) return;
-                if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
-                
-                if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
-                    ranking[p.nombre_jugador] += 3;
-                } else if (
-                    (p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || 
-                    (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante) ||
-                    (p.goles_locales === p.goles_visitante && real.goles_local === real.goles_visitante)
-                ) {
-                    ranking[p.nombre_jugador] += 1;
-                }
-            });
+        async function cargarTodo() {
+            const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
+            const { data: partidos } = await supabaseClient.from('partidos').select('*');
+            
+            let ranking = {};
+            pronosticos.forEach(p => {
+                const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
+                if (!real) return;
+                if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
+                
+                // Puntos: 3 por resultado exacto, 1 por acertar ganador o empate
+                if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
+                    ranking[p.nombre_jugador] += 3;
+                } else if (
+                    (p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || 
+                    (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante) ||
+                    (p.goles_locales === p.goles_visitante && real.goles_local === real.goles_visitante)
+                ) {
+                    ranking[p.nombre_jugador] += 1;
+                }
+            });
 
-            const cuerpo = document.querySelector('#tabla-ranking tbody');
-            cuerpo.innerHTML = Object.entries(ranking).sort((a,b) => b[1] - a[1]).map(([nombre, pts], i) => `
-                <tr class="${nombre === perfilVisitado ? 'mi-perfil' : ''}">
-                    <td>${i+1}${i==0?'🥇':i==1?'🥈':i==2?'🥉':''}</td>
-                    <td><a href="?nombre=${miNombre}&perfil=${nombre}">${nombre}</a></td>
-                    <td>${pts}</td>
-                </tr>`).join('');
+            const cuerpo = document.querySelector('#tabla-ranking tbody');
+            cuerpo.innerHTML = Object.entries(ranking).sort((a,b) => b[1] - a[1]).map(([nombre, pts], i) => `
+                <tr class="${nombre === perfilVisitado ? 'mi-perfil' : ''}">
+                    <td>${i+1}${i==0?'🥇':i==1?'🥈':i==2?'🥉':''}</td>
+                    <td><a href="?nombre=${miNombre}&perfil=${nombre}">${nombre}</a></td>
+                    <td>${pts}</td>
+                </tr>`).join('');
 
-            const cont = document.getElementById('lista-partidos-detalle');
-            const ahora = new Date();
+            const cont = document.getElementById('lista-partidos-detalle');
+            cont.innerHTML = partidos.map(p => {
+                const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
+                let clase = '';
+                if (pron && p.goles_local !== null) {
+                    // Colores: Verde=Exacto, Amarillo=Acierto ganador o empate, Rojo=Falló
+                    if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) {
+                        clase = 'verde';
+                    } else if (
+                        (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || 
+                        (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) ||
+                        (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)
+                    ) {
+                        clase = 'amarillo';
+                    } else {
+                        clase = 'rojo';
+                    }
+                }
+                return `
+                    <div class="card ${clase}">
+                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</div>
+                        <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
+                        <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
+                        ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
+                    </div>`;
+            }).join('');
+        }
 
-            cont.innerHTML = partidos.map(p => {
-                const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
-                
-                // Cálculo de tiempo para bloqueo
-                const fechaPartido = new Date(p.fecha_partido);
-                const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
-                
-                // Lógica: Se bloquea si faltan menos de 10 min, excepto si eres Admin
-                const estaBloqueado = (minutosFaltantes < 10) && !esAdmin;
-                const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele') && !estaBloqueado;
+        async function guardar(id) {
+            const gL = document.querySelector(`.l-${id}`).value;
+            const gV = document.querySelector(`.v-${id}`).value;
+            await supabaseClient.from('pronosticos').upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: parseInt(gL), goles_visitante: parseInt(gV) }, { onConflict: 'nombre_jugador,partido_id' });
+            cargarTodo();
+        }
 
-                let clase = '';
-                if (pron && p.goles_local !== null) {
-                    if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) {
-                        clase = 'verde';
-                    } else if (
-                        (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || 
-                        (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) ||
-                        (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)
-                    ) {
-                        clase = 'amarillo';
-                    } else {
-                        clase = 'rojo';
-                    }
-                }
-                return `
-                    <div class="card ${clase}">
-                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante} ${estaBloqueado ? '🔒' : ''}</div>
-                        <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
-                        <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
-                        ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
-                    </div>`;
-            }).join('');
-        }
-
-        async function guardar(id) {
-            const gL = document.querySelector(`.l-${id}`).value;
-            const gV = document.querySelector(`.v-${id}`).value;
-            await supabaseClient.from('pronosticos').upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: parseInt(gL), goles_visitante: parseInt(gV) }, { onConflict: 'nombre_jugador,partido_id' });
-            cargarTodo();
-        }
-
-        cargarTodo();
-    </script>
+        cargarTodo();
+    </script>
 </body>
-</html>
+</html> aqui esta el codigo, manten todo lo que sirve y acomoda la ligica del bloqueo
