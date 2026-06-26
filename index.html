@@ -152,18 +152,15 @@
     </div>
 
     <script>
-        // Esperamos a que TODOS los recursos (incluido el SDK) estén cargados
         window.onload = function() {
 
-            // Verificar que el SDK de Supabase esté disponible
             if (typeof window.supabase === 'undefined') {
                 document.getElementById('app').innerHTML =
-                    '<div class="error-msg">⚠️ No se pudo cargar el SDK de Supabase. Verifica tu conexión o recarga la página.</div>';
+                    '<div class="error-msg">⚠️ No se pudo cargar el SDK de Supabase.</div>';
                 console.error('Supabase SDK no cargado.');
                 return;
             }
 
-            // Crear cliente usando window.supabase para evitar redeclaración
             const supabaseClient = window.supabase.createClient(
                 'https://rzgwfxxlmurjbwwpmqnb.supabase.co',
                 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD'
@@ -173,19 +170,16 @@
             const miNombre = params.get('nombre') || "Invitado";
             const perfilVisitado = params.get('perfil') || miNombre;
             
-            // Comparación de admin SIN distinguir mayúsculas/minúsculas y recortando espacios
+            // Administradores (comparación sin distinguir mayúsculas)
             const adminList = ['emmanuel', 'fabrizio'];
             const esAdmin = adminList.includes(miNombre.trim().toLowerCase());
-            
-            // Para depuración: muestra en consola si eres admin
-            console.log('Usuario:', miNombre, '¿Es admin?', esAdmin);
+            console.log('Usuario:', miNombre, '¿Admin?', esAdmin);
 
             const modoTele = params.get('modo') === 'tele';
 
             const tablaBody = document.querySelector('#tabla-ranking tbody');
             const partidosContainer = document.getElementById('lista-partidos-detalle');
 
-            // Función para cargar datos
             async function cargarTodo() {
                 try {
                     const { data: pronosticos, error: errPron } = await supabaseClient
@@ -198,7 +192,7 @@
                         .select('*');
                     if (errPart) throw errPart;
 
-                    // --- Ranking ---
+                    // Ranking
                     let ranking = {};
                     pronosticos.forEach(p => {
                         const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
@@ -229,28 +223,25 @@
                         `;
                     }).join('');
 
-                    // --- Partidos con pronósticos ---
+                    // Partidos
                     const ahora = new Date();
                     let html = '';
 
                     partidos.forEach(p => {
                         const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
 
-                        // Fecha del partido en UTC (forzamos interpretación UTC)
-                        const fechaPartido = new Date(p.fecha_partido + 'Z');
-                        // Diferencia en minutos (usando UTC para evitar zona horaria)
+                        // --- CORRECCIÓN 1: No agregar "Z" si la fecha ya tiene zona horaria ---
+                        const fechaPartido = new Date(p.fecha_partido); // ya viene con +00, se interpreta bien
                         const minutosFaltantes = (fechaPartido.getTime() - ahora.getTime()) / (1000 * 60);
 
-                        // BLOQUEO: si ya se jugó o faltan menos de 10 min, y NO es admin
-                        const partidoYaJugado = (p.goles_local !== null);
-                        const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
+                        // --- CORRECCIÓN 2: Partido jugado solo si AMBOS goles son NULL ---
+                        const partidoYaJugado = (p.goles_local !== null && p.goles_visitante !== null);
 
-                        // Editable solo si es el propio perfil o es admin, y no modo tele, y no bloqueado
+                        const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
                         const esEditable = (miNombre === perfilVisitado || esAdmin) && !modoTele && !estaBloqueado;
 
-                        // Color de acierto (si ya hay resultado)
                         let clase = '';
-                        if (pron && p.goles_local !== null) {
+                        if (pron && partidoYaJugado) {
                             const exacto = (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante);
                             const resultado = (
                                 (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) ||
@@ -280,17 +271,14 @@
                     });
 
                     partidosContainer.innerHTML = html;
-
-                    // Exponer guardar globalmente para los onclick
                     window.guardar = guardar;
 
                 } catch (error) {
-                    console.error('Error al cargar:', error);
+                    console.error('Error:', error);
                     partidosContainer.innerHTML = `<div class="error-msg">❌ Error: ${error.message}</div>`;
                 }
             }
 
-            // Función guardar
             async function guardar(id) {
                 try {
                     const inputL = document.querySelector(`.l-${id}`);
@@ -317,11 +305,10 @@
                     await cargarTodo();
                 } catch (error) {
                     console.error('Error al guardar:', error);
-                    alert('Error al guardar: ' + error.message);
+                    alert('Error: ' + error.message);
                 }
             }
 
-            // Iniciar
             cargarTodo();
         };
     </script>
