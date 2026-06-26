@@ -43,17 +43,18 @@
         const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
         const params = new URLSearchParams(window.location.search);
         
-        // Limpiamos el nombre para evitar problemas en Supabase
         const miNombre = (params.get('nombre') || "Invitado").trim();
         const perfilVisitado = (params.get('perfil') || miNombre).trim();
 
         async function cargarTodo() {
-            const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
-            const { data: partidos } = await supabaseClient.from('partidos').select('*');
+            const { data: pronosticos, error: errP } = await supabaseClient.from('pronosticos').select('*');
+            const { data: partidos, error: errM } = await supabaseClient.from('partidos').select('*');
             
+            if (errP || errM) console.error("Error al cargar:", errP || errM);
+
             let ranking = {};
-            pronosticos.forEach(p => {
-                const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
+            (pronosticos || []).forEach(p => {
+                const real = (partidos || []).find(i => i.id === p.partido_id && i.goles_local !== null);
                 if (!real) return;
                 if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
                 if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) ranking[p.nombre_jugador] += 3;
@@ -67,8 +68,8 @@
                 </tr>`).join('');
 
             const cont = document.getElementById('lista-partidos-detalle');
-            cont.innerHTML = partidos.map(p => {
-                const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
+            cont.innerHTML = (partidos || []).map(p => {
+                const pron = (pronosticos || []).find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
                 const esEditable = (miNombre === perfilVisitado) && (params.get('modo') !== 'tele');
 
                 let clase = '';
@@ -89,18 +90,27 @@
         }
 
         async function guardar(id) {
-            const gL = parseInt(document.querySelector(`.l-${id}`).value);
-            const gV = parseInt(document.querySelector(`.v-${id}`).value);
+            const inputL = document.querySelector(`.l-${id}`);
+            const inputV = document.querySelector(`.v-${id}`);
+            const gL = parseInt(inputL.value);
+            const gV = parseInt(inputV.value);
             
             if (isNaN(gL) || isNaN(gV)) return alert("Ingresa números válidos");
 
             const { error } = await supabaseClient
                 .from('pronosticos')
-                .upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: gL, goles_visitante: gV }, { onConflict: 'nombre_jugador,partido_id' });
+                .upsert({ 
+                    nombre_jugador: perfilVisitado, 
+                    partido_id: id, 
+                    goles_locales: gL, 
+                    goles_visitante: gV 
+                }, { onConflict: 'nombre_jugador,partido_id' });
 
             if (error) {
-                alert("Error al guardar: " + error.message);
+                console.error("Error al guardar:", error);
+                alert("Error al guardar en la base de datos. Revisa la consola (F12).");
             } else {
+                alert("Pronóstico guardado correctamente.");
                 cargarTodo();
             }
         }
