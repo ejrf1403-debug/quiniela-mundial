@@ -53,9 +53,7 @@
         
         const miNombre = params.get('nombre') || "Invitado";
         const perfilVisitado = params.get('perfil') || miNombre;
-        
         const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
-        const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele');
 
         async function cargarTodo() {
             const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
@@ -67,7 +65,6 @@
                 if (!real) return;
                 if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
                 
-                // Puntos: 3 por resultado exacto, 1 por acertar ganador o empate
                 if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) {
                     ranking[p.nombre_jugador] += 3;
                 } else if (
@@ -88,11 +85,21 @@
                 </tr>`).join('');
 
             const cont = document.getElementById('lista-partidos-detalle');
+            const ahora = new Date();
+
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
+                
+                // Cálculo de tiempo para bloqueo
+                const fechaPartido = new Date(p.fecha_partido);
+                const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
+                
+                // Lógica: Se bloquea si faltan menos de 10 min, excepto si eres Admin
+                const estaBloqueado = (minutosFaltantes < 10) && !esAdmin;
+                const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele') && !estaBloqueado;
+
                 let clase = '';
                 if (pron && p.goles_local !== null) {
-                    // Colores: Verde=Exacto, Amarillo=Acierto ganador o empate, Rojo=Falló
                     if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) {
                         clase = 'verde';
                     } else if (
@@ -107,7 +114,7 @@
                 }
                 return `
                     <div class="card ${clase}">
-                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</div>
+                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante} ${estaBloqueado ? '🔒' : ''}</div>
                         <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
                         <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
                         ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
