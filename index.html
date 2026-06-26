@@ -93,10 +93,12 @@
                 const fechaPartido = new Date(p.fecha_partido + "Z");
                 const minutosFaltantes = (fechaPartido - ahora) / (1000 * 60);
                 
-                // LÓGICA CORREGIDA: Bloqueado si el partido ya tiene resultado (goles_local != null) 
-                // O si faltan menos de 10 min para empezar.
-                const partidoYaJugado = p.goles_local !== null;
+                // --- LÓGICA CORREGIDA ---
+                // Bloqueado si: Ya se jugó (goles != null) O falta menos de 10 min. 
+                // Excepción: Solo los Administradores pueden editar si está bloqueado.
+                const partidoYaJugado = (p.goles_local !== null);
                 const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
+                
                 const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele') && !estaBloqueado;
 
                 let clase = '';
