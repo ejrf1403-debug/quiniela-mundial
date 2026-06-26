@@ -8,10 +8,8 @@
     <style>
         :root { --oro: #FFD700; --azul: #003366; --verde: #4CAF50; --amarillo: #FFC107; --rojo: #F44336; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--azul); color: white; margin: 0; padding: 10px; }
-        
         h1 { color: var(--oro); text-align: center; font-size: 1.5rem; margin: 15px 0; }
         
-        /* Layout adaptativo */
         .container { display: flex; flex-direction: column; gap: 15px; }
         @media (min-width: 768px) { .container { flex-direction: row; } }
 
@@ -48,20 +46,24 @@
     <script>
         const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
         const params = new URLSearchParams(window.location.search);
-        const miNombre = params.get('nombre') || "Emmanuel";
+        
+        const miNombre = params.get('nombre') || "Invitado";
         const perfilVisitado = params.get('perfil') || miNombre;
-        const esSoloLectura = (miNombre !== perfilVisitado) || (params.get('modo') === 'tele');
+        
+        // Lógica de Administrador: Si eres Emmanuel o Fabrizio, puedes editar siempre
+        const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
+        const esSoloLectura = (!esAdmin && miNombre !== perfilVisitado) || (params.get('modo') === 'tele');
 
         async function cargarTodo() {
             const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
             const { data: partidos } = await supabaseClient.from('partidos').select('*');
             
-            // Lógica Ranking
             let ranking = {};
             pronosticos.forEach(p => {
                 const real = partidos.find(i => i.id === p.partido_id && i.goles_local !== null);
                 if (!real) return;
                 if (!ranking[p.nombre_jugador]) ranking[p.nombre_jugador] = 0;
+                
                 if (p.goles_locales === real.goles_local && p.goles_visitante === real.goles_visitante) ranking[p.nombre_jugador] += 3;
                 else if ((p.goles_locales > p.goles_visitante && real.goles_local > real.goles_visitante) || (p.goles_locales < p.goles_visitante && real.goles_local < real.goles_visitante)) ranking[p.nombre_jugador] += 1;
             });
@@ -74,7 +76,6 @@
                     <td>${pts}</td>
                 </tr>`).join('');
 
-            // Lista partidos
             const cont = document.getElementById('lista-partidos-detalle');
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
@@ -96,7 +97,7 @@
         async function guardar(id) {
             const gL = document.querySelector(`.l-${id}`).value;
             const gV = document.querySelector(`.v-${id}`).value;
-            await supabaseClient.from('pronosticos').upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: gL, goles_visitante: gV }, { onConflict: 'nombre_jugador,partido_id' });
+            await supabaseClient.from('pronosticos').upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: parseInt(gL), goles_visitante: parseInt(gV) }, { onConflict: 'nombre_jugador,partido_id' });
             cargarTodo();
         }
 
