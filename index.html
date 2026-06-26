@@ -4,29 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiniela Mundial 2026</title>
+    <!-- Fuente moderna y legible -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --oro: #FFD700; --azul: #003366; --verde: #4CAF50; --amarillo: #FFC107; --rojo: #F44336; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--azul); color: white; margin: 0; padding: 10px; }
-        h1 { color: var(--oro); text-align: center; font-size: 1.5rem; margin: 15px 0; }
+        :root { --oro: #FFD700; --azul: #003366; --verde: #2E7D32; --amarillo: #F9A825; --rojo: #C62828; }
+        body { font-family: 'Inter', sans-serif; background: var(--azul); color: #333; margin: 0; padding: 15px; }
         
-        .container { display: flex; flex-direction: column; gap: 15px; }
+        h1 { color: var(--oro); text-align: center; font-weight: 800; font-size: 1.8rem; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: auto; }
         @media (min-width: 768px) { .container { flex-direction: row; } }
 
         .col-tabla { flex: 1; }
         .col-partidos { flex: 2; }
 
-        .card { background: white; color: #333; padding: 10px; margin: 6px 0; border-radius: 6px; border-left: 8px solid #ccc; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
-        .verde { border-left-color: var(--verde); background: #c8e6c9; }
-        .amarillo { border-left-color: var(--amarillo); background: #fff9c4; }
-        .rojo { border-left-color: var(--rojo); background: #ffcdd2; }
+        .card { background: white; padding: 12px; margin: 8px 0; border-radius: 10px; border-left: 12px solid #ccc; display: flex; align-items: center; gap: 10px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .verde { border-left-color: var(--verde); background: #e8f5e9; }
+        .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
+        .rojo { border-left-color: var(--rojo); background: #ffebee; }
         
-        input { width: 40px; padding: 6px; text-align: center; border: 1px solid #aaa; border-radius: 4px; }
-        button { padding: 6px 10px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 4px; }
+        input { width: 50px; padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 6px; font-weight: 700; }
+        button { padding: 8px 15px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; }
 
-        table { width: 100%; border-collapse: collapse; background: white; color: #333; border-radius: 8px; overflow: hidden; font-size: 0.85rem; }
-        th, td { padding: 8px; border-bottom: 1px solid #ddd; }
-        .mi-perfil { background-color: #bbdefb !important; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f4f4f4; font-weight: 800; }
+        .mi-perfil { background-color: #e3f2fd !important; }
+        a { color: var(--azul); text-decoration: none; }
     </style>
 </head>
 <body>
@@ -50,9 +55,10 @@
         const miNombre = params.get('nombre') || "Invitado";
         const perfilVisitado = params.get('perfil') || miNombre;
         
-        // Lógica de Administrador: Si eres Emmanuel o Fabrizio, puedes editar siempre
+        // Administradores: Emmanuel y Fabrizio
         const esAdmin = (miNombre === 'Emmanuel' || miNombre === 'Fabrizio');
-        const esSoloLectura = (!esAdmin && miNombre !== perfilVisitado) || (params.get('modo') === 'tele');
+        // Es editable si es tu perfil o si eres admin (y no estás en modo tele)
+        const esEditable = (miNombre === perfilVisitado || esAdmin) && (params.get('modo') !== 'tele');
 
         async function cargarTodo() {
             const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
@@ -87,9 +93,9 @@
                 return `
                     <div class="card ${clase}">
                         <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</div>
-                        <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${esSoloLectura ? 'disabled' : ''}>
-                        <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${esSoloLectura ? 'disabled' : ''}>
-                        ${!esSoloLectura ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
+                        <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
+                        <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
+                        ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
                     </div>`;
             }).join('');
         }
