@@ -19,7 +19,7 @@
         .amarillo { border-left-color: var(--amarillo); background: #fffde7; }
         .rojo { border-left-color: var(--rojo); background: #ffebee; }
         input { width: 50px; padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 6px; font-weight: 700; }
-        button { padding: 8px 15px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; }
+        button { padding: 8px 15px; cursor: pointer; background: var(--azul); color: white; border: none; border-radius: 6px; font-weight: 700; transition: background 0.3s; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
         .mi-perfil { background-color: #e3f2fd !important; }
@@ -43,8 +43,9 @@
         const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
         const params = new URLSearchParams(window.location.search);
         
+        // Limpiamos el nombre para evitar problemas en Supabase
         const miNombre = (params.get('nombre') || "Invitado").trim();
-        const perfilVisitado = params.get('perfil') || miNombre;
+        const perfilVisitado = (params.get('perfil') || miNombre).trim();
 
         async function cargarTodo() {
             const { data: pronosticos } = await supabaseClient.from('pronosticos').select('*');
@@ -66,11 +67,8 @@
                 </tr>`).join('');
 
             const cont = document.getElementById('lista-partidos-detalle');
-
             cont.innerHTML = partidos.map(p => {
                 const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
-                
-                // ACCESO TOTAL: Eliminamos toda lógica de bloqueo.
                 const esEditable = (miNombre === perfilVisitado) && (params.get('modo') !== 'tele');
 
                 let clase = '';
@@ -91,10 +89,20 @@
         }
 
         async function guardar(id) {
-            const gL = document.querySelector(`.l-${id}`).value;
-            const gV = document.querySelector(`.v-${id}`).value;
-            await supabaseClient.from('pronosticos').upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: parseInt(gL), goles_visitante: parseInt(gV) }, { onConflict: 'nombre_jugador,partido_id' });
-            cargarTodo();
+            const gL = parseInt(document.querySelector(`.l-${id}`).value);
+            const gV = parseInt(document.querySelector(`.v-${id}`).value);
+            
+            if (isNaN(gL) || isNaN(gV)) return alert("Ingresa números válidos");
+
+            const { error } = await supabaseClient
+                .from('pronosticos')
+                .upsert({ nombre_jugador: perfilVisitado, partido_id: id, goles_locales: gL, goles_visitante: gV }, { onConflict: 'nombre_jugador,partido_id' });
+
+            if (error) {
+                alert("Error al guardar: " + error.message);
+            } else {
+                cargarTodo();
+            }
         }
 
         cargarTodo();
