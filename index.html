@@ -169,8 +169,7 @@
             const params = new URLSearchParams(window.location.search);
             const miNombre = params.get('nombre') || "Invitado";
             const perfilVisitado = params.get('perfil') || miNombre;
-            
-            // Administradores (comparación sin distinguir mayúsculas)
+
             const adminList = ['emmanuel', 'fabrizio'];
             const esAdmin = adminList.includes(miNombre.trim().toLowerCase());
             console.log('Usuario:', miNombre, '¿Admin?', esAdmin);
@@ -230,18 +229,34 @@
                     partidos.forEach(p => {
                         const pron = pronosticos.find(pr => pr.partido_id === p.id && pr.nombre_jugador === perfilVisitado);
 
-                        // --- CORRECCIÓN 1: No agregar "Z" si la fecha ya tiene zona horaria ---
-                        const fechaPartido = new Date(p.fecha_partido); // ya viene con +00, se interpreta bien
-                        const minutosFaltantes = (fechaPartido.getTime() - ahora.getTime()) / (1000 * 60);
+                        // --- Parseo robusto de fecha (reemplazar espacio por T) ---
+                        let fechaPartido;
+                        let minutosFaltantes = Infinity;
+                        try {
+                            const fechaStr = p.fecha_partido.replace(' ', 'T');
+                            fechaPartido = new Date(fechaStr);
+                            if (isNaN(fechaPartido.getTime())) throw new Error('Fecha inválida');
+                            minutosFaltantes = (fechaPartido.getTime() - ahora.getTime()) / (1000 * 60);
+                        } catch (e) {
+                            console.warn('Error parseando fecha para partido', p.id, p.fecha_partido);
+                            // Si la fecha no se puede parsear, asumimos que el partido ya pasó (para bloquear)
+                            minutosFaltantes = -999;
+                        }
 
-                        // --- CORRECCIÓN 2: Partido jugado solo si AMBOS goles son NULL ---
-                        const partidoYaJugado = (p.goles_local !== null && p.goles_visitante !== null);
+                        // --- Determinar si el partido ya se jugó ---
+                        // 1. Si ambos goles son distintos de NULL -> jugado
+                        // 2. Si la fecha ya pasó (minutosFaltantes < 5) -> jugado (por si los goles quedaron en 0)
+                        const golesAsignados = (p.goles_local !== null && p.goles_visitante !== null);
+                        const tiempoPasado = minutosFaltantes < -5; // ya pasó más de 5 minutos
+                        const partidoYaJugado = golesAsignados || tiempoPasado;
 
+                        // Bloqueo para normales: si ya jugado o faltan menos de 10 min (y no es admin)
                         const estaBloqueado = (partidoYaJugado || minutosFaltantes < 10) && !esAdmin;
+
                         const esEditable = (miNombre === perfilVisitado || esAdmin) && !modoTele && !estaBloqueado;
 
                         let clase = '';
-                        if (pron && partidoYaJugado) {
+                        if (pron && golesAsignados) {
                             const exacto = (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante);
                             const resultado = (
                                 (pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) ||
@@ -261,7 +276,7 @@
                                 <div style="flex:1; min-width:120px;">
                                     ${p.equipo_local} vs ${p.equipo_visitante}
                                     ${estaBloqueado ? ' 🔒' : ''}
-                                    ${partidoYaJugado ? ` (${p.goles_local}-${p.goles_visitante})` : ''}
+                                    ${golesAsignados ? ` (${p.goles_local}-${p.goles_visitante})` : ''}
                                 </div>
                                 <input type="number" class="l-${p.id}" value="${gL}" ${!esEditable ? 'disabled' : ''}>
                                 <input type="number" class="v-${p.id}" value="${gV}" ${!esEditable ? 'disabled' : ''}>
