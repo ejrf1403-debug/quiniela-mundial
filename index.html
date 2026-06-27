@@ -40,7 +40,12 @@
     </div>
 
     <script>
-        const supabaseClient = supabase.createClient('https://rzgwfxxlmurjbwwpmqnb.supabase.co', 'sb_publishable_5_TPtoFxBvCifDDpzsDO0g_nS4mBnzD');
+        // CREDENCIALES ACTUALIZADAS AL PROYECTO B
+        const supabaseClient = supabase.createClient(
+            'https://mucknmkoketbwxrxestr.supabase.co', 
+            'sb_publishable_NTidgIk4cqP_HeTac4UC1Q_Roz8Hkwk'
+        );
+        
         const params = new URLSearchParams(window.location.search);
         
         const miNombre = (params.get('nombre') || "Invitado").trim();
@@ -75,47 +80,4 @@
                 let clase = '';
                 if (pron && p.goles_local !== null) {
                     if (pron.goles_locales === p.goles_local && pron.goles_visitante === p.goles_visitante) clase = 'verde';
-                    else if ((pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || (pron.goles_locales < pron.goles_visitante && p.goles_local < p.goles_visitante) || (pron.goles_locales === pron.goles_visitante && p.goles_local === p.goles_visitante)) clase = 'amarillo';
-                    else clase = 'rojo';
-                }
-
-                return `
-                    <div class="card ${clase}">
-                        <div style="flex:1">${p.equipo_local} vs ${p.equipo_visitante}</div>
-                        <input type="number" class="l-${p.id}" value="${pron?.goles_locales ?? ''}" ${!esEditable ? 'disabled' : ''}>
-                        <input type="number" class="v-${p.id}" value="${pron?.goles_visitante ?? ''}" ${!esEditable ? 'disabled' : ''}>
-                        ${esEditable ? `<button onclick="guardar(${p.id})">✔</button>` : ''}
-                    </div>`;
-            }).join('');
-        }
-
-        async function guardar(id) {
-            const inputL = document.querySelector(`.l-${id}`);
-            const inputV = document.querySelector(`.v-${id}`);
-            const gL = parseInt(inputL.value);
-            const gV = parseInt(inputV.value);
-            
-            if (isNaN(gL) || isNaN(gV)) return alert("Ingresa números válidos");
-
-            const { error } = await supabaseClient
-                .from('pronosticos')
-                .upsert({ 
-                    nombre_jugador: perfilVisitado, 
-                    partido_id: id, 
-                    goles_locales: gL, 
-                    goles_visitante: gV 
-                }, { onConflict: 'nombre_jugador,partido_id' });
-
-            if (error) {
-                console.error("Error al guardar:", error);
-                alert("Error al guardar en la base de datos. Revisa la consola (F12).");
-            } else {
-                alert("Pronóstico guardado correctamente.");
-                cargarTodo();
-            }
-        }
-
-        cargarTodo();
-    </script>
-</body>
-</html>
+                    else if ((pron.goles_locales > pron.goles_visitante && p.goles_local > p.goles_visitante) || (pron.goles_locales < pron.goles_visitante
